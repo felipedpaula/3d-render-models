@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modelo 3D com Three.js</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #fafafa;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .postagem {
+            background-color: white;
+            border: 1px solid #dbdbdb;
+            border-radius: 8px;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            max-width: 320px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .titulo {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .canvas-container {
+            width: 100%;
+            height: 300px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        #container {
+            width: 300px;
+            height: 300px;
+        }
+        #canvas {
+            width: 100%;
+            height: 100%;
+        }
+        .legenda {
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="postagem">
+        <div class="titulo">(Margô) Buldogue francês</div>
+        <div class="canvas-container">
+            <div id="container"></div>
+        </div>
+        <div class="legenda">O cachorro Buldogue francês é conhecido por ser tranquilo, atencioso e muito companheiro de seus amigos humanos. Geralmente se dá muito bem com crianças devido a seu jeito brincalhão e dócil!</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three/examples/js/loaders/OBJLoader.js"></script>
+    <script>
+        // Criação da cena
+        var scene = new THREE.Scene();
+
+        // Criação da câmera
+        var camera = new THREE.PerspectiveCamera(10, 1, 0.1, 1000); // alterado o aspect ratio para 1
+        camera.position.z = 5;
+
+        // Criação do renderer
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(300, 300); // tamanho fixo
+        document.getElementById('container').appendChild(renderer.domElement);
+
+        // Adiciona controles de órbita
+        var controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true; // suaviza o movimento da câmera
+        controls.dampingFactor = 0.25; // ajusta a suavidade do movimento
+
+        // Carrega o modelo OBJ
+        var loader = new THREE.OBJLoader();
+        loader.load('french_bulldog.obj', function(object) {
+            // Percorre os materiais do modelo para aplicar a textura
+            object.traverse(function(child) {
+                if (child instanceof THREE.Mesh) {
+                    // Carrega a textura
+                    var textureLoader = new THREE.TextureLoader();
+                    textureLoader.load('Image_0.jpg', function(texture) {
+                        // Aplica a textura ao material
+                        child.material.map = texture;
+                        child.material.needsUpdate = true;
+                    });
+                }
+            });
+
+            scene.add(object);
+        });
+
+        // Adiciona uma luz ambiente à cena
+        var ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // cor, intensidade
+        scene.add(ambientLight);
+
+        // Adiciona uma luz direcional
+        var directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+        directionalLight.position.set(1, 1, 1).normalize();
+        scene.add(directionalLight);
+
+        // Posiciona a câmera e aponta para o centro da cena
+        camera.position.set(0, 0, 10); // posicionar a câmera mais afastada do modelo
+        camera.lookAt(scene.position); // apontar a câmera para o centro da cena
+
+        // Função de animação
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update(); // atualiza os controles de órbita
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Atualiza o tamanho do renderer quando a janela é redimensionada
+        window.addEventListener('resize', function() {
+            camera.aspect = 1;
+            camera.updateProjectionMatrix();
+            renderer.setSize(500, 500);
+        });
+    </script>
+</body>
+</html>
